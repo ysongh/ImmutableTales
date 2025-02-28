@@ -2,7 +2,7 @@ function App() {
 
   return (
     <>
-      <h1>Immutable Tales</h1>
+      <h1 className="text-4xl">Immutable Tales</h1>
     </>
   )
 }
