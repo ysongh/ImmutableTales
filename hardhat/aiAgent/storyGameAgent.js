@@ -1,7 +1,7 @@
 const { ethers } = require('ethers');
 
 function createStoryGameAgent(contractAddress, providerUrl) {
-  const provider = new ethers.providers.JsonRpcProvider(providerUrl);
+  const provider = new ethers.JsonRpcProvider(providerUrl);
   
   const abi = [
     "event PlayerChoice(address player, uint choice, uint nodeIndex)",
@@ -53,8 +53,6 @@ function createStoryGameAgent(contractAddress, providerUrl) {
 
   return {
     startListening: () => {
-      const playerChoiceFilter = contract.filters.PlayerChoice();
-      
       const listener = (player, choice, nodeIndex) => {
         console.log(`Player ${player} made choice ${choice} at node ${nodeIndex}`);
         
@@ -63,16 +61,16 @@ function createStoryGameAgent(contractAddress, providerUrl) {
         respondToPlayerChoice(player, choice, nodeIndex);
       };
       
-      contract.on(playerChoiceFilter, listener);
-      listeners.push({ filter: playerChoiceFilter, listener });
+      contract.on("PlayerChoice", listener);
+      listeners.push({ eventName: "PlayerChoice", listener });
       
       console.log("Started listening to PlayerChoice events");
       return this;
     },
 
     stopListening: () => {
-      for (const { filter, listener } of listeners) {
-        contract.off(filter, listener);
+      for (const { eventName, listener } of listeners) {
+        contract.off(eventName, listener);
       }
       listeners = [];
       console.log("Stopped listening to events");
