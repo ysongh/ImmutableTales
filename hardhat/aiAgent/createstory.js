@@ -13,12 +13,15 @@ const StoryGameABI = StoryGameArtifact.abi;
 const StoryGameAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const StoryGameManager = new ethers.Contract(StoryGameAddress, StoryGameABI, wallet);
 
-async function test() {
+async function startStory() {
   try {
-    console.log(StoryGameManager);
+    const tx = await StoryGameManager.startStory();
+    const receipt = await tx.wait();
+    
+    console.log(`Transaction successful with hash: ${receipt.hash}`);
   } catch (error) {
     console.error('Error sending transaction:', error);
   }
 }
 
-test();
+startStory();
