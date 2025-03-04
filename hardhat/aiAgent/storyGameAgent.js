@@ -30,10 +30,10 @@ function createStoryGameAgent(contractAddress, providerUrl) {
       timestamp: Date.now(),
       fromNode: nodeIndex,
       choice,
-      toNode: currentNode.toNumber()
+      toNode: Number(currentNode)
     });
     
-    playerData.currentNode = currentNode.toNumber();
+    playerData.currentNode = Number(currentNode);
     
     console.log(`Updated player ${player} state: now at node ${currentNode}`);
   }
