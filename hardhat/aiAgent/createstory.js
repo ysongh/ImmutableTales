@@ -20,8 +20,53 @@ async function startStory() {
     
     console.log(`Transaction successful with hash: ${receipt.hash}`);
   } catch (error) {
-    console.error('Error sending transaction:', error);
+    console.error('Error start story transaction:', error);
   }
 }
 
-startStory();
+async function addStoryNode() {
+  try {
+    const tx = await StoryGameManager.addStoryNode("Test", [1, 2, 3, 4]);
+    const receipt = await tx.wait();
+    
+    console.log(`Transaction successful with hash: ${receipt.hash}`);
+  } catch (error) {
+    console.error('Error add Story Node transaction:', error);
+  }
+}
+
+async function startStory() {
+  try {
+    const tx = await StoryGameManager.startStory();
+    const receipt = await tx.wait();
+    
+    console.log(`Transaction successful with hash: ${receipt.hash}`);
+  } catch (error) {
+    console.error('Error start story transaction:', error);
+  }
+}
+
+async function getCurrentNode() {
+  try {
+    const nodes = await StoryGameManager.getCurrentNode();
+    console.log(nodes);
+  } catch (error) {
+    console.error('Error reading current node:', error);
+  }
+}
+
+async function makeChoice() {
+  try {
+    const tx = await StoryGameManager.makeChoice(1);
+    const receipt = await tx.wait();
+    
+    console.log(`Transaction successful with hash: ${receipt.hash}`);
+  } catch (error) {
+    console.error('Error make choice transaction:', error);
+  }
+}
+
+// startStory();
+// addStoryNode();
+// getCurrentNode();
+makeChoice();
