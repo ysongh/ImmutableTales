@@ -1,15 +1,16 @@
+require('dotenv').config();
+
 const { ethers } = require('ethers');
+const fs = require('fs');
+const path = require('path');
 
 function createStoryGameAgent(contractAddress, providerUrl) {
   const provider = new ethers.JsonRpcProvider(providerUrl);
+
+  const StoryGameArtifact = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json'), 'utf8'));
+  const StoryGameABI = StoryGameArtifact.abi;
   
-  const abi = [
-    "event PlayerChoice(address player, uint choice, uint nodeIndex)",
-    "function getCurrentNode() external view returns (string memory)",
-    "function playerStoryState(address) external view returns (uint)"
-  ];
-  
-  const contract = new ethers.Contract(contractAddress, abi, provider);
+  const contract = new ethers.Contract(contractAddress, StoryGameABI, provider);
   
   let listeners = [];
   
