@@ -2,6 +2,9 @@
 pragma solidity ^0.8.0;
 
 contract StoryGame {
+    address public owner;
+    string public storyTitle;
+
     mapping(address => uint) public playerStoryState;
     
     struct StoryNode {
@@ -12,6 +15,11 @@ contract StoryGame {
     StoryNode[] public storyNodes;
 
     event PlayerChoice(address player, uint choice, uint nodeIndex);
+
+    constructor(address _owner, string memory _storyTitle) {
+        owner = _owner;
+        storyTitle = _storyTitle;
+    }
 
     function startStory() external {
         uint initialNode = 0;
