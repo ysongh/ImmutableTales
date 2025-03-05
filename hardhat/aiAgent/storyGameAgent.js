@@ -102,17 +102,4 @@ function createStoryGameAgent(contractAddress, providerUrl) {
   };
 }
 
-async function main() {
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-  const providerUrl = "http://127.0.0.1:8545/";
-  
-  const agent = createStoryGameAgent(contractAddress, providerUrl);
-  
-  agent.startListening();
-
-  setTimeout(() => {
-    console.log("Player stats:", agent.getStats());
-  }, 60000);
-}
-
 module.exports = createStoryGameAgent;
