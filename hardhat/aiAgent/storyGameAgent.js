@@ -5,113 +5,143 @@ const fs = require('fs');
 const path = require('path');
 
 function createStoryGameAgent(contractAddress, providerUrl) {
-  const provider = new ethers.WebSocketProvider(providerUrl);
+  console.log(`Initializing agent with:
+    - Contract Address: ${contractAddress}
+    - Provider URL: ${providerUrl}`);
 
-  const StoryGameArtifact = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json'), 'utf8'));
-  const StoryGameABI = StoryGameArtifact.abi;
-  
-  const contract = new ethers.Contract(contractAddress, StoryGameABI, provider);
-  
-  let listeners = [];
-  
-  const players = new Map();
-
-  async function trackPlayerChoice(player, choice, nodeIndex) {
-    if (!players.has(player)) {
-      players.set(player, {
-        currentNode: null,
-        history: []
-      });
-    }
-    
-    try {
-      const currentNode = await contract.playerStoryState(player);
-      
-      const playerData = players.get(player);
-      playerData.history.push({
-        timestamp: Date.now(),
-        fromNode: nodeIndex,
-        choice,
-        toNode: Number(currentNode)
-      });
-      
-      playerData.currentNode = Number(currentNode);
-      
-      console.log(`Updated player ${player} state: now at node ${currentNode}`);
-    } catch (error) {
-      console.error("Error tracking player choice:", error);
-    }
+  function debugLog(message) {
+    console.log(`[StoryGameAgent] ${message}`);
   }
 
-  async function respondToPlayerChoice(player, choice, nodeIndex) {
+  function debugError(message, error) {
+    console.error(`[StoryGameAgent] ERROR: ${message}`, error);
+  }
+
+  let provider;
+  let contract;
+  let StoryGameABI;
+
+  try {
+    if (!contractAddress) {
+      throw new Error('Contract address is required');
+    }
+    if (!providerUrl) {
+      throw new Error('Provider URL is required');
+    }
+
     try {
-      if (choice === 0) {
-        console.log("Player chose the first option, could trigger additional logic here");
-      } else if (choice === 1) {
-        console.log("Player chose the second option, could trigger different logic");
+      provider = new ethers.WebSocketProvider(providerUrl);
+    } catch (wsError) {
+      debugError('WebSocket provider failed, falling back to JsonRpcProvider', wsError);
+      provider = new ethers.JsonRpcProvider(providerUrl);
+    }
+
+    const artifactPath = path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json');
+    debugLog(`Looking for artifact at: ${artifactPath}`);
+
+    if (!fs.existsSync(artifactPath)) {
+      throw new Error(`Artifact file not found at ${artifactPath}`);
+    }
+
+    try {
+      const StoryGameArtifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+      StoryGameABI = StoryGameArtifact.abi;
+
+      if (!StoryGameABI || StoryGameABI.length === 0) {
+        throw new Error('Invalid or empty ABI');
       }
-      
-    } catch (error) {
-      console.error("Error responding to player choice:", error);
+    } catch (parseError) {
+      debugError('Failed to parse ABI file', parseError);
+      throw parseError;
     }
+
+    contract = new ethers.Contract(contractAddress, StoryGameABI, provider);
+
+    debugLog('Contract and provider initialized successfully');
+  } catch (setupError) {
+    debugError('Failed to set up agent', setupError);
+    throw setupError;
   }
+
+  let listeners = [];
+  const players = new Map();
 
   return {
     startListening: () => {
       try {
-        const listener = async (player, choice, nodeIndex, event) => {
-          console.log(`Player ${player} made choice ${choice} at node ${nodeIndex}`);
-          console.log('Full event details:', event);
-          
-          await trackPlayerChoice(player, choice, nodeIndex);
-          
-          respondToPlayerChoice(player, choice, nodeIndex);
+        const playerChoiceListener = async (player, choice, nodeIndex, event) => {
+          try {
+            debugLog(`Raw Event Received:
+              - Player: ${player}
+              - Choice: ${choice}
+              - Node Index: ${nodeIndex}
+              - Full Event: ${JSON.stringify(event)}`);
+
+            if (!player) {
+              debugError('Received event with no player address');
+              return;
+            }
+
+            const currentNode = await contract.playerStoryState(player);
+            debugLog(`Current player state:
+              - Player: ${player}
+              - Current Node: ${currentNode}`);
+
+          } catch (listenerError) {
+            debugError('Error in player choice listener', listenerError);
+          }
         };
-      
-        contract.on("PlayerChoice", listener);
-        listeners.push({ eventName: "PlayerChoice", listener });
-        
-        console.log("Started listening to PlayerChoice events");
-        
+
+        try {
+          contract.on("PlayerChoice", playerChoiceListener);
+          debugLog('Registered PlayerChoice event listener via contract.on()');
+        } catch (onError) {
+          debugError('Failed to use contract.on()', onError);
+          
+          try {
+            contract.addListener("PlayerChoice", playerChoiceListener);
+            debugLog('Registered PlayerChoice event listener via contract.addListener()');
+          } catch (addListenerError) {
+            debugError('Failed to use contract.addListener()', addListenerError);
+          }
+        }
+
         provider.on('error', (error) => {
-          console.error('Provider connection error:', error);
+          debugError('Provider connection error', error);
         });
+
+        const connectionCheckInterval = setInterval(() => {
+          try {
+            provider.getNetwork().then(network => {
+              debugLog(`Connection health check - Connected to network: ${network.name}`);
+            }).catch(networkError => {
+              debugError('Network connectivity check failed', networkError);
+            });
+          } catch (intervalError) {
+            debugError('Error in connection health check', intervalError);
+            clearInterval(connectionCheckInterval);
+          }
+        }, 60000);
+
+        debugLog('Event listening setup complete');
 
         return {
           stopListening: () => {
-            for (const { eventName, listener } of listeners) {
-              contract.off(eventName, listener);
+            try {
+              contract.off("PlayerChoice", playerChoiceListener);
+              provider.removeAllListeners();
+              clearInterval(connectionCheckInterval);
+              provider.close();
+              debugLog('Stopped all listeners and closed provider connection');
+            } catch (stopError) {
+              debugError('Error stopping listeners', stopError);
             }
-            listeners = [];
-            console.log("Stopped listening to events");
-            
-            provider.close();
-          },
-          getPlayerHistory: (playerAddress) => {
-            if (players.has(playerAddress)) {
-              return players.get(playerAddress).history;
-            }
-            return [];
-          },
-          getStats: () => {
-            const stats = {
-              totalPlayers: players.size,
-              playerDetails: {}
-            };
-            
-            for (const [address, data] of players.entries()) {
-              stats.playerDetails[address] = {
-                currentNode: data.currentNode,
-                choicesMade: data.history.length
-              };
-            }
-            
-            return stats;
           }
         };
-      } catch (error) {
-        console.error("Error setting up event listener:", error);
-        throw error;
+
+      } catch (setupListenerError) {
+        debugError('Comprehensive setup of event listeners failed', setupListenerError);
+        throw setupListenerError;
       }
     }
   };
