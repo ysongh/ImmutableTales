@@ -66,7 +66,12 @@ async function makeChoice() {
   }
 }
 
-// startStory();
-// addStoryNode();
+async function runPlan() {
+  await startStory();
+  await addStoryNode();
+}
+
 // getCurrentNode();
+
+// runPlan();
 makeChoice();
