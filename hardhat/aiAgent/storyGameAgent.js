@@ -4,6 +4,15 @@ const { ethers } = require('ethers');
 const fs = require('fs');
 const path = require('path');
 
+function safeStringify(obj) {
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  }, 2);
+}
+
 function createStoryGameAgent(contractAddress, providerUrl) {
   console.log(`Initializing agent with:
     - Contract Address: ${contractAddress}
@@ -29,12 +38,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
       throw new Error('Provider URL is required');
     }
 
-    try {
-      provider = new ethers.WebSocketProvider(providerUrl);
-    } catch (wsError) {
-      debugError('WebSocket provider failed, falling back to JsonRpcProvider', wsError);
-      provider = new ethers.JsonRpcProvider(providerUrl);
-    }
+    provider = new ethers.WebSocketProvider(providerUrl);
 
     const artifactPath = path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json');
     debugLog(`Looking for artifact at: ${artifactPath}`);
@@ -43,16 +47,11 @@ function createStoryGameAgent(contractAddress, providerUrl) {
       throw new Error(`Artifact file not found at ${artifactPath}`);
     }
 
-    try {
-      const StoryGameArtifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
-      StoryGameABI = StoryGameArtifact.abi;
+    const StoryGameArtifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+    StoryGameABI = StoryGameArtifact.abi;
 
-      if (!StoryGameABI || StoryGameABI.length === 0) {
-        throw new Error('Invalid or empty ABI');
-      }
-    } catch (parseError) {
-      debugError('Failed to parse ABI file', parseError);
-      throw parseError;
+    if (!StoryGameABI || StoryGameABI.length === 0) {
+      throw new Error('Invalid or empty ABI');
     }
 
     contract = new ethers.Contract(contractAddress, StoryGameABI, provider);
@@ -75,53 +74,57 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               - Player: ${player}
               - Choice: ${choice}
               - Node Index: ${nodeIndex}
-              - Full Event: ${JSON.stringify(event)}`);
+              - Full Event: ${safeStringify(event)}`);
 
             if (!player) {
               debugError('Received event with no player address');
               return;
             }
 
-            const currentNode = await contract.playerStoryState(player);
+            const currentNode = Number(await contract.playerStoryState(player));
+            
             debugLog(`Current player state:
               - Player: ${player}
-              - Current Node: ${currentNode}`);
+              - Current Node: ${currentNode}
+              - Choice: ${Number(choice)}
+              - Node Index: ${Number(nodeIndex)}`);
+
+            if (!players.has(player)) {
+              players.set(player, {
+                currentNode: null,
+                history: []
+              });
+            }
+
+            const playerData = players.get(player);
+            playerData.history.push({
+              timestamp: Date.now(),
+              fromNode: Number(nodeIndex),
+              choice: Number(choice),
+              toNode: currentNode
+            });
+
+            playerData.currentNode = currentNode;
 
           } catch (listenerError) {
             debugError('Error in player choice listener', listenerError);
+            
+            if (listenerError instanceof TypeError) {
+              debugError('Serialization Error Details:', {
+                errorName: listenerError.name,
+                errorMessage: listenerError.message,
+                stack: listenerError.stack
+              });
+            }
           }
         };
 
-        try {
-          contract.on("PlayerChoice", playerChoiceListener);
-          debugLog('Registered PlayerChoice event listener via contract.on()');
-        } catch (onError) {
-          debugError('Failed to use contract.on()', onError);
-          
-          try {
-            contract.addListener("PlayerChoice", playerChoiceListener);
-            debugLog('Registered PlayerChoice event listener via contract.addListener()');
-          } catch (addListenerError) {
-            debugError('Failed to use contract.addListener()', addListenerError);
-          }
-        }
+        contract.on("PlayerChoice", playerChoiceListener);
+        debugLog('Registered PlayerChoice event listener');
 
         provider.on('error', (error) => {
           debugError('Provider connection error', error);
         });
-
-        const connectionCheckInterval = setInterval(() => {
-          try {
-            provider.getNetwork().then(network => {
-              debugLog(`Connection health check - Connected to network: ${network.name}`);
-            }).catch(networkError => {
-              debugError('Network connectivity check failed', networkError);
-            });
-          } catch (intervalError) {
-            debugError('Error in connection health check', intervalError);
-            clearInterval(connectionCheckInterval);
-          }
-        }, 60000);
 
         debugLog('Event listening setup complete');
 
@@ -130,12 +133,17 @@ function createStoryGameAgent(contractAddress, providerUrl) {
             try {
               contract.off("PlayerChoice", playerChoiceListener);
               provider.removeAllListeners();
-              clearInterval(connectionCheckInterval);
               provider.close();
               debugLog('Stopped all listeners and closed provider connection');
             } catch (stopError) {
               debugError('Error stopping listeners', stopError);
             }
+          },
+          getPlayerHistory: (playerAddress) => {
+            if (players.has(playerAddress)) {
+              return players.get(playerAddress).history;
+            }
+            return [];
           }
         };
 
