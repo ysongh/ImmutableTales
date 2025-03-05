@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 function createStoryGameAgent(contractAddress, providerUrl) {
-  const provider = new ethers.JsonRpcProvider(providerUrl);
+  const provider = new ethers.WebSocketProvider(providerUrl);
 
   const StoryGameArtifact = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json'), 'utf8'));
   const StoryGameABI = StoryGameArtifact.abi;
@@ -24,19 +24,23 @@ function createStoryGameAgent(contractAddress, providerUrl) {
       });
     }
     
-    const currentNode = await contract.playerStoryState(player);
-    
-    const playerData = players.get(player);
-    playerData.history.push({
-      timestamp: Date.now(),
-      fromNode: nodeIndex,
-      choice,
-      toNode: Number(currentNode)
-    });
-    
-    playerData.currentNode = Number(currentNode);
-    
-    console.log(`Updated player ${player} state: now at node ${currentNode}`);
+    try {
+      const currentNode = await contract.playerStoryState(player);
+      
+      const playerData = players.get(player);
+      playerData.history.push({
+        timestamp: Date.now(),
+        fromNode: nodeIndex,
+        choice,
+        toNode: Number(currentNode)
+      });
+      
+      playerData.currentNode = Number(currentNode);
+      
+      console.log(`Updated player ${player} state: now at node ${currentNode}`);
+    } catch (error) {
+      console.error("Error tracking player choice:", error);
+    }
   }
 
   async function respondToPlayerChoice(player, choice, nodeIndex) {
@@ -54,50 +58,61 @@ function createStoryGameAgent(contractAddress, providerUrl) {
 
   return {
     startListening: () => {
-      const listener = (player, choice, nodeIndex) => {
-        console.log(`Player ${player} made choice ${choice} at node ${nodeIndex}`);
-        
-        trackPlayerChoice(player, choice, nodeIndex);
-        
-        respondToPlayerChoice(player, choice, nodeIndex);
-      };
-      
-      contract.on("PlayerChoice", listener);
-      listeners.push({ eventName: "PlayerChoice", listener });
-      
-      console.log("Started listening to PlayerChoice events");
-      return this;
-    },
-
-    stopListening: () => {
-      for (const { eventName, listener } of listeners) {
-        contract.off(eventName, listener);
-      }
-      listeners = [];
-      console.log("Stopped listening to events");
-    },
-
-    getPlayerHistory: (playerAddress) => {
-      if (players.has(playerAddress)) {
-        return players.get(playerAddress).history;
-      }
-      return [];
-    },
-
-    getStats: () => {
-      const stats = {
-        totalPlayers: players.size,
-        playerDetails: {}
-      };
-      
-      for (const [address, data] of players.entries()) {
-        stats.playerDetails[address] = {
-          currentNode: data.currentNode,
-          choicesMade: data.history.length
+      try {
+        const listener = async (player, choice, nodeIndex, event) => {
+          console.log(`Player ${player} made choice ${choice} at node ${nodeIndex}`);
+          console.log('Full event details:', event);
+          
+          await trackPlayerChoice(player, choice, nodeIndex);
+          
+          respondToPlayerChoice(player, choice, nodeIndex);
         };
-      }
       
-      return stats;
+        contract.on("PlayerChoice", listener);
+        listeners.push({ eventName: "PlayerChoice", listener });
+        
+        console.log("Started listening to PlayerChoice events");
+        
+        provider.on('error', (error) => {
+          console.error('Provider connection error:', error);
+        });
+
+        return {
+          stopListening: () => {
+            for (const { eventName, listener } of listeners) {
+              contract.off(eventName, listener);
+            }
+            listeners = [];
+            console.log("Stopped listening to events");
+            
+            provider.close();
+          },
+          getPlayerHistory: (playerAddress) => {
+            if (players.has(playerAddress)) {
+              return players.get(playerAddress).history;
+            }
+            return [];
+          },
+          getStats: () => {
+            const stats = {
+              totalPlayers: players.size,
+              playerDetails: {}
+            };
+            
+            for (const [address, data] of players.entries()) {
+              stats.playerDetails[address] = {
+                currentNode: data.currentNode,
+                choicesMade: data.history.length
+              };
+            }
+            
+            return stats;
+          }
+        };
+      } catch (error) {
+        console.error("Error setting up event listener:", error);
+        throw error;
+      }
     }
   };
 }

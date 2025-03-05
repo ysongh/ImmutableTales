@@ -5,7 +5,6 @@ const providerUrl = "http://127.0.0.1:8545/";
 
 const agent = createStoryGameAgent(contractAddress, providerUrl);
 
-// Start listening for events
 agent.startListening();
 
 console.log("Agent is running and listening for events...");
