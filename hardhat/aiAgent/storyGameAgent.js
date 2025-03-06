@@ -27,6 +27,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
   }
 
   let provider;
+  let wallet;
   let contract;
   let StoryGameABI;
 
@@ -39,6 +40,9 @@ function createStoryGameAgent(contractAddress, providerUrl) {
     }
 
     provider = new ethers.WebSocketProvider(providerUrl);
+    
+    wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    debugLog(`Agent wallet address: ${wallet.address}`);
 
     const artifactPath = path.resolve(__dirname, '../artifacts/contracts/StoryGameFactory.sol/StoryGameFactory.json');
     debugLog(`Looking for artifact at: ${artifactPath}`);
@@ -54,9 +58,9 @@ function createStoryGameAgent(contractAddress, providerUrl) {
       throw new Error('Invalid or empty ABI');
     }
 
-    contract = new ethers.Contract(contractAddress, StoryGameABI, provider);
+    contract = new ethers.Contract(contractAddress, StoryGameABI, wallet);
 
-    debugLog('Contract and provider initialized successfully');
+    debugLog('Contract and provider initialized successfully with transaction signing capability');
   } catch (setupError) {
     debugError('Failed to set up agent', setupError);
     throw setupError;
@@ -64,11 +68,32 @@ function createStoryGameAgent(contractAddress, providerUrl) {
 
   let listeners = [];
   const players = new Map();
+  
+
+  async function addStoryNode(storyGameId, content, choices) {
+    debugLog(`Adding story node to game ${storyGameId} with content: ${content.substring(0, 50)}...`);
+    
+    try {
+      // Convert choices to array of string indices
+      const choiceIndices = [];
+      
+      const tx = await contract.addStoryNode(storyGameId, content, choiceIndices);
+      debugLog(`Transaction sent: ${tx.hash}`);
+      
+      const receipt = await tx.wait();
+      debugLog(`Transaction confirmed in block ${receipt.blockNumber}`);
+      
+      return receipt;
+    } catch (error) {
+      debugError("Error adding story node", error);
+      throw error;
+    }
+  }
 
   return {
     startListening: () => {
       try {
-        const playerChoiceListener = async (player, choice, nodeIndex, storyGameId,  event) => {
+        const playerChoiceListener = async (player, choice, nodeIndex, storyGameId, event) => {
           try {
             debugLog(`Raw Event Received:
               - Player: ${player}
@@ -147,6 +172,12 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               return players.get(playerAddress).history;
             }
             return [];
+          },
+          getWalletAddress: () => {
+            return wallet.address;
+          },
+          addStoryNode: async (storyGameId, content, choices) => {
+            return await addStoryNode(storyGameId, content, choices);
           }
         };
 
