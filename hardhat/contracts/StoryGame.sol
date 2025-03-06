@@ -14,26 +14,22 @@ contract StoryGame {
 
     StoryNode[] public storyNodes;
 
-    event PlayerChoice(address player, uint choice, uint nodeIndex);
-
     constructor(address _owner, string memory _storyTitle) {
         owner = _owner;
         storyTitle = _storyTitle;
-    }
 
-    function startStory() external {
         uint initialNode = 0;
-        playerStoryState[msg.sender] = initialNode;
+        playerStoryState[_owner] = initialNode;
     }
 
-    function makeChoice(uint choiceId) external {
+    function makeChoice(uint choiceId) external returns(uint) {
         uint currentNode = playerStoryState[msg.sender];
         StoryNode storage node = storyNodes[currentNode];
         require(choiceId < node.choices.length, "Invalid choice");
 
         playerStoryState[msg.sender] = node.choices[choiceId];
 
-        emit PlayerChoice(msg.sender, choiceId, currentNode);
+        return currentNode;
     }
 
     function getCurrentNode() external view returns (string memory) {

@@ -9,6 +9,7 @@ contract StoryGameFactory {
     mapping(address => StoryGame[]) public authorStoryGames;
     
     event StoryGameCreated(address indexed owner, address storyGameAddress, string storyTitle);
+    event PlayerChoice(address player, uint choice, uint nodeIndex, uint storyGameId);
     
     function createStoryGame(string memory _storyTitle) external returns (address) {
         StoryGame newStoryGame = new StoryGame(msg.sender, _storyTitle);
@@ -19,6 +20,18 @@ contract StoryGameFactory {
         emit StoryGameCreated(msg.sender, address(newStoryGame), _storyTitle);
         
         return address(newStoryGame);
+    }
+
+    function makeChoice(uint id, uint choiceId) external {
+        StoryGame storyGame = deployedStoryGames[id];
+        uint currentNode = storyGame.makeChoice(choiceId);
+
+        emit PlayerChoice(msg.sender, choiceId, currentNode, id);
+    }
+
+    function addStoryNode(uint id, string memory content, uint[] memory choices) external {
+        StoryGame storyGame = deployedStoryGames[id];
+        storyGame.addStoryNode(content, choices);
     }
 
     function getAllStoryGames() external view returns (StoryGame[] memory) {
