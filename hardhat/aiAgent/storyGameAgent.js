@@ -40,7 +40,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
 
     provider = new ethers.WebSocketProvider(providerUrl);
 
-    const artifactPath = path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json');
+    const artifactPath = path.resolve(__dirname, '../artifacts/contracts/StoryGameFactory.sol/StoryGameFactory.json');
     debugLog(`Looking for artifact at: ${artifactPath}`);
 
     if (!fs.existsSync(artifactPath)) {
@@ -68,12 +68,13 @@ function createStoryGameAgent(contractAddress, providerUrl) {
   return {
     startListening: () => {
       try {
-        const playerChoiceListener = async (player, choice, nodeIndex, event) => {
+        const playerChoiceListener = async (player, choice, nodeIndex, storyGameId,  event) => {
           try {
             debugLog(`Raw Event Received:
               - Player: ${player}
               - Choice: ${choice}
               - Node Index: ${nodeIndex}
+              - Story Game ID: ${storyGameId}
               - Full Event: ${safeStringify(event)}`);
 
             if (!player) {
@@ -81,12 +82,13 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               return;
             }
 
-            const currentNode = Number(await contract.playerStoryState(player));
+            const currentNode = Number(await contract.getPlayerStoryState(storyGameId, player));
             
             debugLog(`Current player state:
               - Player: ${player}
               - Current Node: ${currentNode}
               - Choice: ${Number(choice)}
+              - Story Game ID: ${storyGameId}
               - Node Index: ${Number(nodeIndex)}`);
 
             if (!players.has(player)) {
@@ -101,6 +103,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               timestamp: Date.now(),
               fromNode: Number(nodeIndex),
               choice: Number(choice),
+              storyGameId: Number(storyGameId),
               toNode: currentNode
             });
 

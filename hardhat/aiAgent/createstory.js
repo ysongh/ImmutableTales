@@ -6,7 +6,7 @@ const path = require('path');
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
-const StoryGameArtifact = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json'), 'utf8'));
+const StoryGameArtifact = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../artifacts/contracts/StoryGameFactory.sol/StoryGameFactory.json'), 'utf8'));
 const StoryGameABI = StoryGameArtifact.abi;
 const StoryGameAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const StoryGameManager = new ethers.Contract(StoryGameAddress, StoryGameABI, wallet);
@@ -24,7 +24,7 @@ async function startStory() {
 
 async function addStoryNode() {
   try {
-    const tx = await StoryGameManager.addStoryNode("Test", [1, 2, 3, 4]);
+    const tx = await StoryGameManager.addStoryNode(0, "Test", [1, 2, 3, 4]);
     const receipt = await tx.wait();
     
     console.log(`Transaction successful with hash: ${receipt.hash}`);
@@ -55,7 +55,7 @@ async function getCurrentNode() {
 
 async function makeChoice() {
   try {
-    const tx = await StoryGameManager.makeChoice(1);
+    const tx = await StoryGameManager.makeChoice(0, 1);
     const receipt = await tx.wait();
     
     console.log(`Transaction successful with hash: ${receipt.hash}`);
@@ -64,8 +64,9 @@ async function makeChoice() {
   }
 }
 
+
 async function runPlan() {
-  await startStory();
+  // await startStory();
   await addStoryNode();
 }
 

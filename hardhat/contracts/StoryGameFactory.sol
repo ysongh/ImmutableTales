@@ -49,4 +49,11 @@ contract StoryGameFactory {
     function getAuthorStoryGameCount(address author) external view returns (uint) {
         return authorStoryGames[author].length;
     }
+
+    function getPlayerStoryState(uint id, address player) external view returns (uint playerState) {
+        StoryGame storyGame = deployedStoryGames[id];
+        storyGame.playerStoryState(player);
+
+        return playerState;
+    }
 }
