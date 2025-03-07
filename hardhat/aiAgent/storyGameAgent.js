@@ -3,6 +3,12 @@ require('dotenv').config();
 const { ethers } = require('ethers');
 const fs = require('fs');
 const path = require('path');
+const OpenAI = require('openai');
+
+const client = new OpenAI({
+  baseURL: 'https://nilai-a779.nillion.network/v1',
+  apiKey: process.env.NILAI_API_KEY || 'YOUR_API_KEY_HERE'
+});
 
 function safeStringify(obj) {
   return JSON.stringify(obj, (key, value) => {
@@ -70,43 +76,32 @@ function createStoryGameAgent(contractAddress, providerUrl) {
   const players = new Map();
   const storyGames = new Map();
   
-  // Story content generation helper
-  async function generateStoryContent(storyGameId, player, currentNode, previousChoice) {
-    // In a real implementation, this could use AI or predefined story paths
-    // For this example, we'll use a simple approach
-    
+  async function generateStoryContent(storyGameId, player, currentNode, previousChoice) {    
     debugLog(`Generating story content for game ${storyGameId}, player ${player}, node ${currentNode}`);
     
-    let content, choices;
+    let content;
+    let choices = [1, 2, 3, 4]
     
-    // Example story progression - in a real app, this would be more sophisticated
-    if (currentNode === 0) {
-      content = "You stand at the entrance of a dark forest. The path ahead splits in two directions.";
-      choices = [1, 2]; // These are indices of nodes we'll create
-    } else if (previousChoice === 0) { // They took the first choice last time
-      content = "You follow the left path deeper into the forest. You hear strange sounds in the distance.";
-      choices = [3, 4];
-    } else if (previousChoice === 1) { // They took the second choice last time
-      content = "The right path leads you to a small clearing with an old well in the center.";
-      choices = [5, 6];
-    } else {
-      // Generate more varied content based on current state
-      const options = [
-        "You come across a small cottage with smoke rising from the chimney.",
-        "A stream blocks your path. There's a fallen log that could serve as a bridge.",
-        "You find an ancient stone circle covered in mysterious symbols.",
-        "The forest opens up to reveal a breathtaking view of mountains in the distance."
-      ];
-      
-      // Use a deterministic but varied selection based on node and choice
-      const index = (currentNode + previousChoice) % options.length;
-      content = options[index];
-      
-      // Generate next node indices - these would be created on demand
-      const nextNodeBase = currentNode + 10; // Just a simple way to generate new indices
-      choices = [nextNodeBase, nextNodeBase + 1];
-    }
-    
+    const response = await client.chat.completions.create({
+      model: 'meta-llama/Llama-3.1-8B-Instruct',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a story teller and writer.'
+        },
+        {
+          role: 'user',
+          content: 'Write a short story'
+        }
+      ],
+      stream: false
+    });
+
+    // Every SecretLLM response includes a cryptographic signature for verification
+    console.log(`Signature: ${response.signature}`);
+    console.log(`Response: ${response.choices[0].message.content}`);
+    content = response.choices[0].message.content;
+
     return { content, choices };
   }
 
@@ -246,7 +241,24 @@ function createStoryGameAgent(contractAddress, providerUrl) {
             
             // Initialize the story game with a starting node
             try {
-              const initialContent = `Welcome to "${storyTitle}"! Your adventure begins here.`;
+              const response = await client.chat.completions.create({
+                model: 'meta-llama/Llama-3.1-8B-Instruct',
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are a story teller and writer.'
+                  },
+                  {
+                    role: 'user',
+                    content: `Write a short story about ${storyTitle}`
+                  }
+                ],
+                stream: false
+              });
+          
+              console.log(`Signature: ${response.signature}`);
+              console.log(`Response: ${response.choices[0].message.content}`);
+              const initialContent = response.choices[0].message.content;
               const initialChoices = [1, 2]; // Point to future nodes that will be created
               
               await addStoryNode(storyGameId, initialContent, initialChoices);
