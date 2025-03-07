@@ -1,6 +1,7 @@
 import { HashRouter, Route, Routes } from 'react-router-dom';
 
 import StoriesList from './pages/StoriesList';
+import CreateStory from './pages/CreateStory';
 
 function App() {
 
@@ -8,8 +9,8 @@ function App() {
     <HashRouter>
       <Routes>
         <Route
-          path="/test"
-          element={<h1>Test</h1>} />
+          path="/createstory"
+          element={<CreateStory />} />
         <Route
           path="/"
           element={<StoriesList />} />
