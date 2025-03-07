@@ -11,6 +11,17 @@ const StoryGameABI = StoryGameArtifact.abi;
 const StoryGameAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const StoryGameManager = new ethers.Contract(StoryGameAddress, StoryGameABI, wallet);
 
+async function createStoryGame(title) {
+  try {
+    const tx = await StoryGameManager.createStoryGame(title);
+    const receipt = await tx.wait();
+    
+    console.log(`Transaction successful with hash: ${receipt.hash}`);
+  } catch (error) {
+    console.error('Error create story game transaction:', error);
+  }
+}
+
 async function startStory() {
   try {
     const tx = await StoryGameManager.startStory();
@@ -70,7 +81,7 @@ async function runPlan() {
   await addStoryNode();
 }
 
+createStoryGame("Found a treasure");
 // getCurrentNode();
-
 // runPlan();
-makeChoice();
+// makeChoice();

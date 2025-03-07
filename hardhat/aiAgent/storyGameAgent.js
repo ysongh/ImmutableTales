@@ -68,14 +68,15 @@ function createStoryGameAgent(contractAddress, providerUrl) {
 
   let listeners = [];
   const players = new Map();
-  
+  const storyGames = new Map();
 
   async function addStoryNode(storyGameId, content, choices) {
     debugLog(`Adding story node to game ${storyGameId} with content: ${content.substring(0, 50)}...`);
     
     try {
-      // Convert choices to array of string indices
-      const choiceIndices = [];
+      const choiceIndices = choices.map(choice => Number(choice));
+      
+      debugLog(`Adding story node with choices: ${JSON.stringify(choiceIndices)}`);
       
       const tx = await contract.addStoryNode(storyGameId, content, choiceIndices);
       debugLog(`Transaction sent: ${tx.hash}`);
@@ -147,8 +148,35 @@ function createStoryGameAgent(contractAddress, providerUrl) {
           }
         };
 
+        const storyGameCreatedListener = async (owner, storyGameAddress, storyTitle, event) => {
+          try {
+            debugLog(`StoryGame Created:
+              - Owner: ${owner}
+              - Story Game Address: ${storyGameAddress}
+              - Story Title: ${storyTitle}
+              - Full Event: ${safeStringify(event)}`);
+
+            const storyGameId = storyGames.size;
+            storyGames.set(storyGameAddress, {
+              id: storyGameId,
+              owner: owner,
+              title: storyTitle,
+              address: storyGameAddress,
+              createdAt: Date.now(),
+              nodeCount: 0
+            });
+
+            debugLog(`Stored new story game with ID: ${storyGameId}`);
+          } catch (listenerError) {
+            debugError('Error in story game created listener', listenerError);
+          }
+        };
+
         contract.on("PlayerChoice", playerChoiceListener);
         debugLog('Registered PlayerChoice event listener');
+
+        contract.on("StoryGameCreated", storyGameCreatedListener);
+        debugLog('Registered StoryGameCreated event listener');
 
         provider.on('error', (error) => {
           debugError('Provider connection error', error);
@@ -160,6 +188,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
           stopListening: () => {
             try {
               contract.off("PlayerChoice", playerChoiceListener);
+              contract.off("StoryGameCreated", storyGameCreatedListener);
               provider.removeAllListeners();
               provider.close();
               debugLog('Stopped all listeners and closed provider connection');
@@ -172,6 +201,12 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               return players.get(playerAddress).history;
             }
             return [];
+          },
+          getStoryGames: () => {
+            return Array.from(storyGames.values());
+          },
+          getStoryGame: (storyGameAddress) => {
+            return storyGames.get(storyGameAddress);
           },
           getWalletAddress: () => {
             return wallet.address;
