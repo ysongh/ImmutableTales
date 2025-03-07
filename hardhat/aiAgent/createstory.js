@@ -66,7 +66,7 @@ async function getCurrentNode() {
 
 async function makeChoice() {
   try {
-    const tx = await StoryGameManager.makeChoice(0, 1);
+    const tx = await StoryGameManager.makeChoice(0, 0);
     const receipt = await tx.wait();
     
     console.log(`Transaction successful with hash: ${receipt.hash}`);
@@ -81,7 +81,8 @@ async function runPlan() {
   await addStoryNode();
 }
 
-createStoryGame("Found a treasure");
+// createStoryGame("Found a treasure");
 // getCurrentNode();
 // runPlan();
-// makeChoice();
+// addStoryNode();
+makeChoice();
