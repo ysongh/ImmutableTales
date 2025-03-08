@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { ETHContext } from '../ETHContext';
+import { useContracts } from '../utils/useContracts';
+import { formatAddress } from '../utils/format';
+
 const StoryDetail = () => {
-  const { storyId } = useParams(); // Get story ID from URL
+  const { storyId } = useParams();
+
+  const { signer } = useContext(ETHContext);
+  const { getAllContentByStoryId, makeChoice } = useContracts();
+
   const [story, setStory] = useState(null);
+  const [listOfContent, setListOfContent] = useState([]);
   const [contentInput, setContentInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,6 +21,9 @@ const StoryDetail = () => {
     const fetchStory = async () => {
       try {
         setIsLoading(true);
+        const newContent = await getAllContentByStoryId(signer, storyId);
+        setListOfContent(newContent);
+
         const mockStory = {
           id: storyId,
           title: "The Quantum Chronicles",
@@ -40,11 +52,13 @@ const StoryDetail = () => {
     };
 
     fetchStory();
-  }, [storyId]);
+  }, [signer]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!contentInput.trim()) return;
+
+    await makeChoice(signer, storyId, contentInput);
 
     setIsSubmitting(true);
     try {
@@ -94,15 +108,15 @@ const StoryDetail = () => {
         </div>
 
         <div className="space-y-6 mb-6">
-          {story.content.map((entry) => (
+          {listOfContent.map((entry) => (
             <div
               key={entry.id}
               className="bg-white rounded-lg shadow-md p-6"
             >
-              <p className="text-gray-800 mb-2">{entry.text}</p>
+              <p className="text-gray-800 mb-2">{entry}</p>
               <div className="flex justify-between text-sm text-gray-500">
-                <span>By {entry.author}</span>
-                <span>{new Date(entry.timestamp).toLocaleString()}</span>
+                <span>By Author</span>
+                <span>3/8/2025</span>
               </div>
             </div>
           ))}
@@ -124,7 +138,7 @@ const StoryDetail = () => {
             <button
               type="submit"
               disabled={isSubmitting || !contentInput.trim()}
-              className={`mt-4 w-full py-2 px-4 rounded-md text-white font-medium ${
+              className={`cursor-pointer mt-4 w-full py-2 px-4 rounded-md text-white font-medium ${
                 isSubmitting || !contentInput.trim()
                   ? 'bg-blue-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700'

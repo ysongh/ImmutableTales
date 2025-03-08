@@ -1,6 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
+
 import { ETHContext } from '../ETHContext';
+import { formatAddress } from '../utils/format';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -8,11 +10,6 @@ const Navbar = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const formatAddress = (address) => {
-    if (!address) return '';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (

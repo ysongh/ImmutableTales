@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+
+import { ETHContext } from '../ETHContext';
+import { useContracts } from '../utils/useContracts';
 
 const CreateStory = () => {
+   const { signer } = useContext(ETHContext);
+   const { createStoryGame } = useContracts();
+
   const [formData, setFormData] = useState({
     title: '',
     theme: '',
@@ -22,6 +28,8 @@ const CreateStory = () => {
     
     try {
       console.log('Story data to submit:', formData);
+
+      await createStoryGame(signer, formData.title);
       
       setFormData({
         title: '',
@@ -104,7 +112,7 @@ const CreateStory = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-2 px-4 rounded-md text-white font-medium ${
+            className={`cursor-pointer w-full py-2 px-4 rounded-md text-white font-medium ${
               isSubmitting
                 ? 'bg-blue-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700'
