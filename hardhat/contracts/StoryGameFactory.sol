@@ -5,6 +5,13 @@ import './StoryGame.sol';
 
 contract StoryGameFactory {
     StoryGame[] public deployedStoryGames;
+    Story[] public stories;
+
+    struct Story{
+        address contractAddress;
+        string title;
+        address owner;
+    }
     
     mapping(address => StoryGame[]) public authorStoryGames;
     
@@ -16,6 +23,14 @@ contract StoryGameFactory {
         
         deployedStoryGames.push(newStoryGame);
         authorStoryGames[msg.sender].push(newStoryGame);
+
+        Story memory newStory = Story({
+            contractAddress: address(newStoryGame),
+            title: _storyTitle,
+            owner: msg.sender
+        });
+
+        stories.push(newStory);
         
         emit StoryGameCreated(msg.sender, address(newStoryGame), _storyTitle);
         
@@ -60,5 +75,9 @@ contract StoryGameFactory {
     function getAllContentByStoryId(uint id) external view returns (string[] memory) {
         StoryGame storyGame = deployedStoryGames[id];
         return storyGame.getAllContent();
+    }
+
+    function getAllStories() external view returns (Story[] memory) {
+        return stories;
     }
 }

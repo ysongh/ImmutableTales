@@ -35,10 +35,11 @@ const StoriesList = () => {
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200"
             >
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                {formatAddress(story)}
+                {story.title}
               </h2>
-              <div className="flex justify-between items-center text-sm text-gray-500">
-                <span>Updated: 2025-03-08</span>
+              <div className="text-sm text-gray-500">
+                <p>By {formatAddress(story.address)}</p>
+                <p>Updated: 2025-03-08</p>
               </div>
               <button
                 onClick={() => navigate(`/story/${index}`)}

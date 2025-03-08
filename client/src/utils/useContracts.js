@@ -10,10 +10,16 @@ export const useContracts = () => {
 
   const getAllStoryGames = async (signer) => {
     const contract = await getStoryGameContract(signer);
-    let stories = await contract.getAllStoryGames();
-    stories = Array.from(stories);
-    console.log(stories);
-    return stories;
+    let stories = await contract.getAllStories();
+    const formatStories = stories.map(item => ({
+      address: item[0],
+      title: item[1],
+      owner: item[2]
+    }));
+
+    console.log(formatStories);
+    
+    return formatStories;
   }
 
   const getAllContentByStoryId = async (signer, id) => {
