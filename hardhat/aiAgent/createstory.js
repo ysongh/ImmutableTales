@@ -64,9 +64,9 @@ async function getCurrentNode() {
   }
 }
 
-async function makeChoice() {
+async function makeChoice(id, choice) {
   try {
-    const tx = await StoryGameManager.makeChoice(0, 0);
+    const tx = await StoryGameManager.makeChoice(id, choice);
     const receipt = await tx.wait();
     
     console.log(`Transaction successful with hash: ${receipt.hash}`);
@@ -74,7 +74,6 @@ async function makeChoice() {
     console.error('Error make choice transaction:', error);
   }
 }
-
 
 async function runPlan() {
   // await startStory();
@@ -85,4 +84,4 @@ async function runPlan() {
 // getCurrentNode();
 // runPlan();
 // addStoryNode();
-makeChoice();
+makeChoice(0, "Go West");

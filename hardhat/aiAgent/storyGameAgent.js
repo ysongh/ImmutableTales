@@ -73,10 +73,8 @@ function createStoryGameAgent(contractAddress, providerUrl) {
   }
 
   let listeners = [];
-  const players = new Map();
-  const storyGames = new Map();
   
-  async function generateStoryContent(storyGameId, player, currentNode, previousChoice) {    
+  async function generateStoryContent(storyGameId, player, currentNode) {    
     debugLog(`Generating story content for game ${storyGameId}, player ${player}, node ${currentNode}`);
     
     let content;
@@ -105,27 +103,15 @@ function createStoryGameAgent(contractAddress, providerUrl) {
     return { content, choices };
   }
 
-  async function addStoryNode(storyGameId, content, choices) {
+  async function addStoryNode(storyGameId, content) {
     debugLog(`Adding story node to game ${storyGameId} with content: ${content.substring(0, 50)}...`);
     
     try {
-      // Convert choices to array of indices
-      const choiceIndices = choices.map(choice => Number(choice));
-      
-      debugLog(`Adding story node with choices: ${JSON.stringify(choiceIndices)}`);
-      
-      const tx = await contract.addStoryNode(storyGameId, content, choiceIndices);
+      const tx = await contract.addStoryNode(storyGameId, content);
       debugLog(`Transaction sent: ${tx.hash}`);
       
       const receipt = await tx.wait();
       debugLog(`Transaction confirmed in block ${receipt.blockNumber}`);
-      
-      // Update the node count for this story game if we're tracking it
-      if (storyGames.has(storyGameId.toString())) {
-        const game = storyGames.get(storyGameId.toString());
-        game.nodeCount++;
-        storyGames.set(storyGameId.toString(), game);
-      }
       
       return receipt;
     } catch (error) {
@@ -137,13 +123,11 @@ function createStoryGameAgent(contractAddress, providerUrl) {
   return {
     startListening: () => {
       try {
-        // Listen for PlayerChoice events
-        const playerChoiceListener = async (player, choice, nodeIndex, storyGameId, event) => {
+        const playerChoiceListener = async (player, choice, storyGameId, event) => {
           try {
             debugLog(`Raw Event Received:
               - Player: ${player}
               - Choice: ${choice}
-              - Node Index: ${nodeIndex}
               - Story Game ID: ${storyGameId}`);
               // - Full Event: ${safeStringify(event)}`);
 
@@ -152,32 +136,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               return;
             }
 
-            const currentNode = Number(await contract.getPlayerStoryState(storyGameId, player));
-            
-            debugLog(`Current player state:
-              - Player: ${player}
-              - Current Node: ${currentNode}
-              - Choice: ${Number(choice)}
-              - Story Game ID: ${storyGameId}
-              - Node Index: ${Number(nodeIndex)}`);
-
-            if (!players.has(player)) {
-              players.set(player, {
-                currentNode: null,
-                history: []
-              });
-            }
-
-            const playerData = players.get(player);
-            playerData.history.push({
-              timestamp: Date.now(),
-              fromNode: Number(nodeIndex),
-              choice: Number(choice),
-              storyGameId: Number(storyGameId),
-              toNode: currentNode
-            });
-
-            playerData.currentNode = currentNode;
+            const currentNode = Number(await contract.getPlayerStoryState(storyGameId));
             
             // Automatically generate and add the next story node based on the player's choice
             try {
@@ -187,13 +146,12 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               const { content, choices } = await generateStoryContent(
                 storyGameId, 
                 player, 
-                currentNode, 
-                Number(choice)
+                currentNode
               );
               
               // Add the new story node to the blockchain
               debugLog(`Automatically adding new story node to game ${storyGameId}`);
-              await addStoryNode(storyGameId, content, choices);
+              await addStoryNode(storyGameId, content);
               
               debugLog(`Successfully added new story node in response to player choice`);
             } catch (nodeError) {
@@ -222,24 +180,11 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               - Story Title: ${storyTitle}`);
               // - Full Event: ${safeStringify(event)}`);
 
-            // Store information about the newly created story game
-            // For lookup purposes, use the id explicitly from event data or a derived value
             const storyGameId = event.args && event.args.storyGameId ? 
-                              Number(event.args.storyGameId) : 
-                              storyGames.size; // Fallback to using size as approximate ID
-            
-            storyGames.set(storyGameAddress, {
-              id: storyGameId,
-              owner: owner,
-              title: storyTitle,
-              address: storyGameAddress,
-              createdAt: Date.now(),
-              nodeCount: 0 // Start with 0 nodes
-            });
+                              Number(event.args.storyGameId) : 0;
 
             debugLog(`Stored new story game with ID: ${storyGameId}`);
             
-            // Initialize the story game with a starting node
             try {
               const response = await client.chat.completions.create({
                 model: 'meta-llama/Llama-3.1-8B-Instruct',
@@ -259,9 +204,8 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               console.log(`Signature: ${response.signature}`);
               console.log(`Response: ${response.choices[0].message.content}`);
               const initialContent = response.choices[0].message.content;
-              const initialChoices = [1, 2]; // Point to future nodes that will be created
               
-              await addStoryNode(storyGameId, initialContent, initialChoices);
+              await addStoryNode(storyGameId, initialContent);
               debugLog(`Initialized story game ${storyGameId} with starting node`);
             } catch (initError) {
               debugError(`Failed to initialize story game ${storyGameId}`, initError);
@@ -296,23 +240,11 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               debugError('Error stopping listeners', stopError);
             }
           },
-          getPlayerHistory: (playerAddress) => {
-            if (players.has(playerAddress)) {
-              return players.get(playerAddress).history;
-            }
-            return [];
-          },
-          getStoryGames: () => {
-            return Array.from(storyGames.values());
-          },
-          getStoryGame: (storyGameAddress) => {
-            return storyGames.get(storyGameAddress);
-          },
           getWalletAddress: () => {
             return wallet.address;
           },
-          addStoryNode: async (storyGameId, content, choices) => {
-            return await addStoryNode(storyGameId, content, choices);
+          addStoryNode: async (storyGameId, content) => {
+            return await addStoryNode(storyGameId, content);
           },
           generateStoryContent: async (storyGameId, player, currentNode, previousChoice) => {
             return await generateStoryContent(storyGameId, player, currentNode, previousChoice);
