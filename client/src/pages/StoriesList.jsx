@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const StoriesList = () => {
+  const navigate = useNavigate();
+  
   const stories = [
     {
       id: 1,
@@ -48,7 +51,10 @@ const StoriesList = () => {
                 <span>By {story.author}</span>
                 <span>Updated: {story.lastUpdated}</span>
               </div>
-              <button className="cursor-pointer mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200">
+              <button
+                onClick={() => navigate(`/story/${story.id}`)}
+                className="cursor-pointer mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
+              >
                 View Story
               </button>
             </div>
