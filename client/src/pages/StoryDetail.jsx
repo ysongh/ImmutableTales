@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { ETHContext } from '../ETHContext';
 import { useContracts } from '../utils/useContracts';
-import { formatAddress } from '../utils/format';
+import { formatAddress, formatStoryNode } from '../utils/format';
 
 const StoryDetail = () => {
   const { storyId } = useParams();
@@ -102,24 +102,30 @@ const StoryDetail = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        {/* <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{story.title}</h1>
           <p className="text-gray-600">Theme: {story.theme}</p>
-        </div>
+        </div> */}
 
         <div className="space-y-6 mb-6">
-          {listOfContent.map((entry) => (
-            <div
-              key={entry.id}
-              className="bg-white rounded-lg shadow-md p-6"
-            >
-              <p className="text-gray-800 mb-2">{entry}</p>
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>By Author</span>
-                <span>3/8/2025</span>
+          {listOfContent.map((entry, index) => {
+            const { content, choices} = formatStoryNode(entry)
+            return (
+              <div
+                key={index}
+                className="bg-white rounded-lg shadow-md p-6"
+              >
+                <p className="text-gray-800 mb-2">{content}</p>
+                <h3>Your Choices:</h3>
+                {choices.map((choice, index) => (
+                  <p key={index}>{choice.label}{choice.text}</p>
+                ))}
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>By Author</span>
+                  <span>3/8/2025</span>
+                </div>
               </div>
-            </div>
-          ))}
+            )})}
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
