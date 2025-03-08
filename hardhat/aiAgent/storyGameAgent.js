@@ -89,7 +89,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
         },
         {
           role: 'user',
-          content: `Write a short story based on this ${choice}. There the previous data. ${formattedData}`
+          content: `Write a short story based on this ${choice}, no more than 100 words. Give 4 choices that the user can choose to determine the next part. There the previous data. ${formattedData}`
         }
       ],
       stream: false
@@ -196,7 +196,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
                   },
                   {
                     role: 'user',
-                    content: `Write a short story about ${storyTitle}`
+                    content: `Write a short story about ${storyTitle} no more than 100 words. Give 4 choices that the user can choose to determine the next part.`
                   }
                 ],
                 stream: false
