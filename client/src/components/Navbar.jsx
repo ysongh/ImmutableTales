@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
+import { ETHContext } from '../ETHContext';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { walletAddress, connectWallet } = useContext(ETHContext);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const formatAddress = (address) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (
@@ -37,6 +44,12 @@ const Navbar = () => {
             >
               Create Story
             </NavLink>
+            <button
+              onClick={connectWallet}
+              className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md transition-colors duration-200"
+            >
+              {walletAddress ? formatAddress(walletAddress) : 'Connect Wallet'}
+            </button>
           </div>
 
           <button
@@ -94,6 +107,15 @@ const Navbar = () => {
             >
               Create Story
             </NavLink>
+            <button
+              onClick={() => {
+                connectWallet();
+                toggleMobileMenu();
+              }}
+              className="w-full text-left py-2 px-4 bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+            >
+              {walletAddress ? formatAddress(walletAddress) : 'Connect Wallet'}
+            </button>
           </div>
         )}
       </div>

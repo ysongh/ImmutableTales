@@ -26,3 +26,5 @@ dist-ssr
 *.sw?
 
 pnpm-lock.yaml
+/src/cache
+/src/artifacts
