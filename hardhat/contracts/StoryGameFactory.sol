@@ -56,4 +56,9 @@ contract StoryGameFactory {
 
         return currentStoryNum;
     }
+
+    function getAllContentByStoryId(uint id) external view returns (string[] memory) {
+        StoryGame storyGame = deployedStoryGames[id];
+        return storyGame.getAllContent();
+    }
 }

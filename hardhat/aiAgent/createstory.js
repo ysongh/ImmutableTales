@@ -55,15 +55,6 @@ async function startStory() {
   }
 }
 
-async function getCurrentNode() {
-  try {
-    const nodes = await StoryGameManager.getCurrentNode();
-    console.log(nodes);
-  } catch (error) {
-    console.error('Error reading current node:', error);
-  }
-}
-
 async function makeChoice(id, choice) {
   try {
     const tx = await StoryGameManager.makeChoice(id, choice);
@@ -75,13 +66,48 @@ async function makeChoice(id, choice) {
   }
 }
 
+async function getAllContentByStoryId(id) {
+  try {
+    const nodes = await StoryGameManager.getAllContentByStoryId(id);
+    console.log(nodes);
+  } catch (error) {
+    console.error('Error reading current node:', error);
+  }
+}
+
+async function getAllContent() {
+  try {
+    const StoryGameArtifact = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../artifacts/contracts/StoryGame.sol/StoryGame.json'), 'utf8'));
+    const StoryGameABI = StoryGameArtifact.abi;
+    const StoryGameAddress = "0xa16E02E87b7454126E5E10d957A927A7F5B5d2be";
+    const StoryGameManager = new ethers.Contract(StoryGameAddress, StoryGameABI, wallet);
+
+    const nodes = await StoryGameManager.getAllContent();
+    console.log(nodes);
+  } catch (error) {
+    console.error('Error reading current node:', error);
+  }
+}
+
+async function getDeployedStoryGameById(id) {
+  try {
+    const contractAddress = await StoryGameManager.deployedStoryGames(id);
+    console.log(contractAddress);
+  } catch (error) {
+    console.error('Error reading current node:', error);
+  }
+}
+
+
 async function runPlan() {
   // await startStory();
   await addStoryNode();
 }
 
 // createStoryGame("Found a treasure");
-// getCurrentNode();
+// getAllContent();
+// getAllContentByStoryId(0);
+// getDeployedStoryGameById(0);
 // runPlan();
 // addStoryNode();
 makeChoice(0, "Treasure is empty");

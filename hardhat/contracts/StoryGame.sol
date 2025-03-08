@@ -36,4 +36,14 @@ contract StoryGame {
     function getCurrentStory() external view returns (string memory) {
         return storyNodes[currentStoryNum].content;
     }
+
+    function getAllContent() external view returns (string[] memory) {
+        string[] memory contents = new string[](storyNodes.length);
+        
+        for (uint i = 0; i < storyNodes.length; i++) {
+            contents[i] = storyNodes[i].content;
+        }
+        
+        return contents;
+    }
 }

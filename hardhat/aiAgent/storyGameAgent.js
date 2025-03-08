@@ -74,10 +74,11 @@ function createStoryGameAgent(contractAddress, providerUrl) {
 
   let listeners = [];
   
-  async function generateStoryContent(storyGameId, player, currentNode, choice) {    
+  async function generateStoryContent(storyGameId, player, currentNode, choice, arrayOfContents) {    
     debugLog(`Generating story content for game ${storyGameId}, player ${player}, node ${currentNode}`);
     
     let content;
+    const formattedData = JSON.stringify(arrayOfContents, null, 2);
     
     const response = await client.chat.completions.create({
       model: 'meta-llama/Llama-3.1-8B-Instruct',
@@ -88,7 +89,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
         },
         {
           role: 'user',
-          content: `Write a short story based on this ${choice}`
+          content: `Write a short story based on this ${choice}. There the previous data. ${formattedData}`
         }
       ],
       stream: false
@@ -134,6 +135,8 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               debugError('Received event with no player address');
               return;
             }
+
+            const arrayOfContents = await contract.getAllContentByStoryId(storyGameId);
             
             // Automatically generate and add the next story node based on the player's choice
             try {
@@ -143,7 +146,8 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               const { content } = await generateStoryContent(
                 storyGameId, 
                 player,
-                choice
+                choice,
+                arrayOfContents
               );
               
               // Add the new story node to the blockchain
@@ -243,8 +247,8 @@ function createStoryGameAgent(contractAddress, providerUrl) {
           addStoryNode: async (storyGameId, content) => {
             return await addStoryNode(storyGameId, content);
           },
-          generateStoryContent: async (storyGameId, player, previousChoice) => {
-            return await generateStoryContent(storyGameId, player, previousChoice);
+          generateStoryContent: async (storyGameId, player, previousChoice, arrayOfContents) => {
+            return await generateStoryContent(storyGameId, player, previousChoice, arrayOfContents);
           }
         };
 
