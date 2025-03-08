@@ -9,7 +9,7 @@ contract StoryGameFactory {
     mapping(address => StoryGame[]) public authorStoryGames;
     
     event StoryGameCreated(address indexed owner, address storyGameAddress, string storyTitle);
-    event PlayerChoice(address player, uint choice, uint nodeIndex, uint storyGameId);
+    event PlayerChoice(address player, string choice, uint storyGameId);
     
     function createStoryGame(string memory _storyTitle) external returns (address) {
         StoryGame newStoryGame = new StoryGame(msg.sender, _storyTitle);
@@ -22,16 +22,16 @@ contract StoryGameFactory {
         return address(newStoryGame);
     }
 
-    function makeChoice(uint id, uint choiceId) external {
+    function makeChoice(uint id, string memory choice) external {
         StoryGame storyGame = deployedStoryGames[id];
-        uint currentNode = storyGame.makeChoice(choiceId);
+        storyGame.makeChoice(choice);
 
-        emit PlayerChoice(msg.sender, choiceId, currentNode, id);
+        emit PlayerChoice(msg.sender, choice, id);
     }
 
-    function addStoryNode(uint id, string memory content, uint[] memory choices) external {
+    function addStoryNode(uint id, string memory content) external {
         StoryGame storyGame = deployedStoryGames[id];
-        storyGame.addStoryNode(content, choices);
+        storyGame.addStoryNode(content);
     }
 
     function getAllStoryGames() external view returns (StoryGame[] memory) {
@@ -50,10 +50,10 @@ contract StoryGameFactory {
         return authorStoryGames[author].length;
     }
 
-    function getPlayerStoryState(uint id, address player) external view returns (uint playerState) {
+    function getPlayerStoryState(uint id) external view returns (uint currentStoryNum) {
         StoryGame storyGame = deployedStoryGames[id];
-        storyGame.playerStoryState(player);
+        storyGame.currentStoryNum();
 
-        return playerState;
+        return currentStoryNum;
     }
 }

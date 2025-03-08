@@ -5,44 +5,35 @@ contract StoryGame {
     address public owner;
     string public storyTitle;
 
-    mapping(address => uint) public playerStoryState;
-    
     struct StoryNode {
         string content;
-        uint[] choices;
+        string choice;
     }
 
     StoryNode[] public storyNodes;
+    uint256 public currentStoryNum;
 
     constructor(address _owner, string memory _storyTitle) {
         owner = _owner;
         storyTitle = _storyTitle;
-
-        uint initialNode = 0;
-        playerStoryState[_owner] = initialNode;
     }
 
-    function makeChoice(uint choiceId) external returns(uint) {
-        uint currentNode = playerStoryState[msg.sender];
-        StoryNode storage node = storyNodes[currentNode];
-        require(choiceId < node.choices.length, "Invalid choice");
-
-        playerStoryState[msg.sender] = node.choices[choiceId];
-
-        return currentNode;
-    }
-
-    function getCurrentNode() external view returns (string memory) {
-        uint currentNode = playerStoryState[msg.sender];
-        return storyNodes[currentNode].content;
-    }
-
-    function addStoryNode(string memory content, uint[] memory choices) external {
+    function addStoryNode(string memory content) external {
         StoryNode memory newNode = StoryNode({
             content: content,
-            choices: choices
+            choice: ""
         });
 
         storyNodes.push(newNode);
+    }
+
+    function makeChoice(string memory choice) external {
+        StoryNode storage currentNode = storyNodes[currentStoryNum];
+        currentNode.choice = choice;
+        currentStoryNum++;
+    }
+
+    function getCurrentStory() external view returns (string memory) {
+        return storyNodes[currentStoryNum].content;
     }
 }
