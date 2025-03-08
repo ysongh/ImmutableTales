@@ -84,4 +84,4 @@ async function runPlan() {
 // getCurrentNode();
 // runPlan();
 // addStoryNode();
-makeChoice(0, "Go West");
+makeChoice(0, "Treasure is empty");

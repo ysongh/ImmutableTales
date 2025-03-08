@@ -74,11 +74,10 @@ function createStoryGameAgent(contractAddress, providerUrl) {
 
   let listeners = [];
   
-  async function generateStoryContent(storyGameId, player, currentNode) {    
+  async function generateStoryContent(storyGameId, player, currentNode, choice) {    
     debugLog(`Generating story content for game ${storyGameId}, player ${player}, node ${currentNode}`);
     
     let content;
-    let choices = [1, 2, 3, 4]
     
     const response = await client.chat.completions.create({
       model: 'meta-llama/Llama-3.1-8B-Instruct',
@@ -89,7 +88,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
         },
         {
           role: 'user',
-          content: 'Write a short story'
+          content: `Write a short story based on this ${choice}`
         }
       ],
       stream: false
@@ -100,7 +99,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
     console.log(`Response: ${response.choices[0].message.content}`);
     content = response.choices[0].message.content;
 
-    return { content, choices };
+    return { content };
   }
 
   async function addStoryNode(storyGameId, content) {
@@ -135,18 +134,16 @@ function createStoryGameAgent(contractAddress, providerUrl) {
               debugError('Received event with no player address');
               return;
             }
-
-            const currentNode = Number(await contract.getPlayerStoryState(storyGameId));
             
             // Automatically generate and add the next story node based on the player's choice
             try {
               debugLog(`Generating next story node in response to player choice`);
               
               // Get story content based on the current state
-              const { content, choices } = await generateStoryContent(
+              const { content } = await generateStoryContent(
                 storyGameId, 
-                player, 
-                currentNode
+                player,
+                choice
               );
               
               // Add the new story node to the blockchain
@@ -246,8 +243,8 @@ function createStoryGameAgent(contractAddress, providerUrl) {
           addStoryNode: async (storyGameId, content) => {
             return await addStoryNode(storyGameId, content);
           },
-          generateStoryContent: async (storyGameId, player, currentNode, previousChoice) => {
-            return await generateStoryContent(storyGameId, player, currentNode, previousChoice);
+          generateStoryContent: async (storyGameId, player, previousChoice) => {
+            return await generateStoryContent(storyGameId, player, previousChoice);
           }
         };
 
