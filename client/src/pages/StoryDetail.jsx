@@ -9,9 +9,9 @@ const StoryDetail = () => {
   const { storyId } = useParams();
 
   const { signer } = useContext(ETHContext);
-  const { getAllContentByStoryId, makeChoice } = useContracts();
+  const { getAllContentByStoryId, getStoryDataByStoryId,  makeChoice } = useContracts();
 
-  const [story, setStory] = useState(null);
+  const [story, setStory] = useState([]);
   const [listOfContent, setListOfContent] = useState([]);
   const [contentInput, setContentInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -23,27 +23,6 @@ const StoryDetail = () => {
         setIsLoading(true);
         const newContent = await getAllContentByStoryId(signer, storyId);
         setListOfContent(newContent);
-
-        const mockStory = {
-          id: storyId,
-          title: "The Quantum Chronicles",
-          theme: "Sci-Fi",
-          content: [
-            {
-              id: 1,
-              text: "In a world where quantum gates connect dimensions, Alex stumbled upon a hidden portal.",
-              author: "CryptoBard",
-              timestamp: "2025-03-05T10:00:00Z"
-            },
-            {
-              id: 2,
-              text: "The portal shimmered, revealing a mirror universe where time flowed backward.",
-              author: "ChainTeller",
-              timestamp: "2025-03-05T12:00:00Z"
-            }
-          ]
-        };
-        setStory(mockStory);
       } catch (error) {
         console.error('Error fetching story:', error);
       } finally {
@@ -53,6 +32,15 @@ const StoryDetail = () => {
 
     fetchStory();
   }, [signer]);
+
+  useEffect(() => {
+    const fetchStoryData = async () => {
+      const newStoryData = await getStoryDataByStoryId(signer, storyId);
+      setStory(newStoryData);
+    }
+    fetchStoryData()
+  }, [signer])
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,10 +90,10 @@ const StoryDetail = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{story.title}</h1>
-          <p className="text-gray-600">Theme: {story.theme}</p>
-        </div> */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{story[1]}</h1>
+          <p className="text-gray-600">Theme: {story[1]}</p>
+        </div>
 
         <div className="space-y-6 mb-6">
           {listOfContent.map((entry, index) => {

@@ -31,6 +31,14 @@ export const useContracts = () => {
     return stories;
   }
 
+  const getStoryDataByStoryId = async (signer, id) => {
+    const contract = await getStoryGameContract(signer);
+    let storyData = await contract.stories(id);
+    storyData = Array.from(storyData);
+    console.log(storyData);
+    return storyData;
+  }
+
   const createStoryGame = async (signer, title) => {
     const contract = await getStoryGameContract(signer);
     const createTX = await contract.createStoryGame(title);
@@ -48,6 +56,7 @@ export const useContracts = () => {
   return {
     getAllStoryGames,
     getAllContentByStoryId,
+    getStoryDataByStoryId,
     createStoryGame,
     makeChoice
   };
