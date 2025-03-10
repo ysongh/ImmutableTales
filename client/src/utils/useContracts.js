@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 import StoryGameManager from "../artifacts/contracts/StoryGameFactory.sol/StoryGameFactory.json";
 
-// const STORYGAMEFACTORY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const STORYGAMEFACTORY_ADDRESS = "0xBdf3a2c90cEAB5A307e78956Bc1BeF33c19C1F78";
+const STORYGAMEFACTORY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// const STORYGAMEFACTORY_ADDRESS = "0xBdf3a2c90cEAB5A307e78956Bc1BeF33c19C1F78";
 
 export const useContracts = () => {
   const getStoryGameContract = async (signer) => {
