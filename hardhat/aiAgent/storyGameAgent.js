@@ -173,16 +173,14 @@ function createStoryGameAgent(contractAddress, providerUrl) {
         };
 
         // Add new listener for StoryGameCreated events
-        const storyGameCreatedListener = async (owner, storyGameAddress, storyTitle, event) => {
+        const storyGameCreatedListener = async (owner, storyGameAddress, storyTitle, storyGameId, event) => {
           try {
             debugLog(`StoryGame Created:
               - Owner: ${owner}
               - Story Game Address: ${storyGameAddress}
-              - Story Title: ${storyTitle}`);
+              - Story Title: ${storyTitle}
+              - Story ID: ${storyGameId}`);
               // - Full Event: ${safeStringify(event)}`);
-
-            const storyGameId = event.args && event.args.storyGameId ? 
-                              Number(event.args.storyGameId) : 0;
 
             debugLog(`Stored new story game with ID: ${storyGameId}`);
             
