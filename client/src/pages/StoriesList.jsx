@@ -7,7 +7,7 @@ import { formatAddress } from '../utils/format';
 
 const StoriesList = () => {
   const navigate = useNavigate();
-  const { signer } = useContext(ETHContext);
+  const { connectWallet, signer, walletAddress } = useContext(ETHContext);
   const { getAllStoryGames } = useContracts();
 
   const [stories, setStories] = useState([]);
@@ -19,6 +19,27 @@ const StoriesList = () => {
   const fetchStories = async () => {
     const newStories = await getAllStoryGames(signer);
     setStories(newStories);
+  }
+
+  if (!walletAddress) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-md p-6 text-center max-w-md">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Connect Your Wallet
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Please connect your Ethereum wallet to view and interact with stories on Immutable Tales.
+          </p>
+          <button
+            onClick={connectWallet}
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition-colors duration-200"
+          >
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
