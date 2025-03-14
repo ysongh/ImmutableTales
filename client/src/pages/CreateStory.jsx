@@ -29,7 +29,7 @@ const CreateStory = () => {
     try {
       console.log('Story data to submit:', formData);
 
-      await createStoryGame(signer, formData.title);
+      await createStoryGame(signer, formData.title, formData.theme);
       
       setFormData({
         title: '',

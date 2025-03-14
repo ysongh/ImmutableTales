@@ -39,9 +39,9 @@ export const useContracts = () => {
     return storyData;
   }
 
-  const createStoryGame = async (signer, title) => {
+  const createStoryGame = async (signer, title, theme) => {
     const contract = await getStoryGameContract(signer);
-    const createTX = await contract.createStoryGame(title);
+    const createTX = await contract.createStoryGame(title, theme);
     await createTX.wait();
     return createTX;
   }

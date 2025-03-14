@@ -10,17 +10,18 @@ contract StoryGameFactory {
     struct Story{
         address contractAddress;
         string title;
+        string theme;
         address owner;
     }
     
     mapping(address => StoryGame[]) public authorStoryGames;
     
-    event StoryGameCreated(address indexed owner, address storyGameAddress, string storyTitle, uint storyGameId);
+    event StoryGameCreated(address indexed owner, address storyGameAddress, string storyTitle, string theme, uint storyGameId);
     event PlayerChoice(address player, string choice, uint storyGameId);
     
-    function createStoryGame(string memory _storyTitle) external returns (address) {
+    function createStoryGame(string memory _storyTitle, string memory _theme) external returns (address) {
         uint storyGameId = deployedStoryGames.length;
-        StoryGame newStoryGame = new StoryGame(msg.sender, _storyTitle);
+        StoryGame newStoryGame = new StoryGame(msg.sender, _storyTitle, _theme);
         
         deployedStoryGames.push(newStoryGame);
         authorStoryGames[msg.sender].push(newStoryGame);
@@ -28,12 +29,13 @@ contract StoryGameFactory {
         Story memory newStory = Story({
             contractAddress: address(newStoryGame),
             title: _storyTitle,
+            theme: _theme,
             owner: msg.sender
         });
 
         stories.push(newStory);
         
-        emit StoryGameCreated(msg.sender, address(newStoryGame), _storyTitle, storyGameId);
+        emit StoryGameCreated(msg.sender, address(newStoryGame), _storyTitle, _theme, storyGameId);
         
         return address(newStoryGame);
     }

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 contract StoryGame {
     address public owner;
     string public storyTitle;
+    string public theme;
 
     struct StoryNode {
         string content;
@@ -13,9 +14,10 @@ contract StoryGame {
     StoryNode[] public storyNodes;
     uint256 public currentStoryNum;
 
-    constructor(address _owner, string memory _storyTitle) {
+    constructor(address _owner, string memory _storyTitle, string memory _theme ) {
         owner = _owner;
         storyTitle = _storyTitle;
+        theme = _theme;
     }
 
     function addStoryNode(string memory content) external {

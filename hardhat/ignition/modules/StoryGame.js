@@ -6,7 +6,7 @@ module.exports = buildModule("StoryGameModule", (m) => {
   const createStoryGameCall = m.call(
     storyGameFactory,
     "createStoryGame",
-    ["The Adventure Begins"]
+    ["The Adventure Begins", "Action"]
   );
 
   return { storyGameFactory, createStoryGameCall };

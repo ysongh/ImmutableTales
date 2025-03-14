@@ -173,12 +173,13 @@ function createStoryGameAgent(contractAddress, providerUrl) {
         };
 
         // Add new listener for StoryGameCreated events
-        const storyGameCreatedListener = async (owner, storyGameAddress, storyTitle, storyGameId, event) => {
+        const storyGameCreatedListener = async (owner, storyGameAddress, storyTitle, storyTheme, storyGameId, event) => {
           try {
             debugLog(`StoryGame Created:
               - Owner: ${owner}
               - Story Game Address: ${storyGameAddress}
               - Story Title: ${storyTitle}
+              - Story Theme: ${storyTheme}
               - Story ID: ${storyGameId}`);
               // - Full Event: ${safeStringify(event)}`);
 
@@ -194,7 +195,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
                   },
                   {
                     role: 'user',
-                    content: `Write a short story about ${storyTitle} no more than 100 words. Give 4 choices that the user can choose to determine the next part.`
+                    content: `Write a short story about ${storyTitle} no more than 100 words. The theme is ${storyTheme}. Give 4 choices that the user can choose to determine the next part.`
                   }
                 ],
                 stream: false
