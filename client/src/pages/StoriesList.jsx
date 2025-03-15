@@ -58,8 +58,11 @@ const StoriesList = () => {
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
                 {story.title}
               </h2>
+              <p className="text-blue-600 text-sm mb-4 font-medium">
+                Theme: {story.theme}
+              </p>
               <div className="text-sm text-gray-500">
-                <p>By {formatAddress(story.address)}</p>
+                <p>By {formatAddress(story.owner)}</p>
                 <p>Updated: 2025-03-08</p>
               </div>
               <button

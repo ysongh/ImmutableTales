@@ -15,7 +15,8 @@ export const useContracts = () => {
     const formatStories = stories.map(item => ({
       address: item[0],
       title: item[1],
-      owner: item[2]
+      theme: item[2],
+      owner: item[3]
     }));
 
     console.log(formatStories);
