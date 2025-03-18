@@ -41,6 +41,16 @@ const Navbar = () => {
             >
               Create Story
             </NavLink>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                `hover:text-gray-300 transition-colors duration-200 ${
+                  isActive ? 'text-blue-400' : ''
+                }`
+              }
+            >
+              Profile
+            </NavLink>
             <button
               onClick={connectWallet}
               className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md transition-colors duration-200"
@@ -103,6 +113,17 @@ const Navbar = () => {
               onClick={toggleMobileMenu}
             >
               Create Story
+            </NavLink>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                `block py-2 px-4 hover:bg-gray-700 transition-colors duration-200 ${
+                  isActive ? 'bg-gray-700 text-blue-400' : ''
+                }`
+              }
+              onClick={toggleMobileMenu}
+            >
+              Profile
             </NavLink>
             <button
               onClick={() => {

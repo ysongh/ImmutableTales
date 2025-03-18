@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import StoriesList from './pages/StoriesList';
 import CreateStory from './pages/CreateStory';
 import StoryDetail from './pages/StoryDetail';
+import UserProfile from './pages/UserProfile';
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<StoriesList />} />
           <Route path="/create-story" element={<CreateStory />} />
           <Route path="/story/:storyId" element={<StoryDetail />} />
+          <Route path="/profile" element={<UserProfile />} />
         </Routes>
       </HashRouter>
     </ETHProvider>
