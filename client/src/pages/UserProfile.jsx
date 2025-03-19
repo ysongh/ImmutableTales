@@ -1,11 +1,29 @@
-// src/components/UserProfile.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ETHContext } from '../ETHContext';
+import { useContracts } from '../utils/useContracts';
 
 const UserProfile = () => {
   const navigate = useNavigate();
+  const { signer, walletAddress } = useContext(ETHContext);
+   const { getAuthorStoryGameCount } = useContracts();
+
   const [userData, setUserData] = useState(null);
+  const [storyCount, setStoryCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  
+   useEffect(() => {
+      const fetchStory = async () => {
+        try {
+          const newCount = await getAuthorStoryGameCount(signer, walletAddress);
+          setStoryCount(newCount);
+        } catch (error) {
+          console.error('Error Author Story Game Count:', error);
+        }
+      };
+  
+      fetchStory();
+    }, [walletAddress]);
 
   const fetchUserData = async () => {
     try {
@@ -83,7 +101,7 @@ const UserProfile = () => {
           </div>
           <div className="mt-4 flex space-x-4">
             <span className="text-gray-700">
-              Stories: <span className="font-semibold">{userData.stories.length}</span>
+              Stories: <span className="font-semibold">{storyCount}</span>
             </span>
             <span className="text-gray-700">
               Owned NFTs: <span className="font-semibold">{userData.ownedNFTs}</span>
