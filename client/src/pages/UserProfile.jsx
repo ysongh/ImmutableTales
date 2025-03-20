@@ -6,24 +6,38 @@ import { useContracts } from '../utils/useContracts';
 const UserProfile = () => {
   const navigate = useNavigate();
   const { signer, walletAddress } = useContext(ETHContext);
-   const { getAuthorStoryGameCount } = useContracts();
+   const { getAuthorStoryGameCount, getAuthorStoryGames } = useContracts();
 
   const [userData, setUserData] = useState(null);
   const [storyCount, setStoryCount] = useState(0);
+  const [storyAddresses, setStoryAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   
-   useEffect(() => {
-      const fetchStory = async () => {
-        try {
-          const newCount = await getAuthorStoryGameCount(signer, walletAddress);
-          setStoryCount(newCount);
-        } catch (error) {
-          console.error('Error Author Story Game Count:', error);
-        }
-      };
-  
-      fetchStory();
-    }, [walletAddress]);
+  useEffect(() => {
+    const fetchStoryCount = async () => {
+      try {
+        const newCount = await getAuthorStoryGameCount(signer, walletAddress);
+        setStoryCount(newCount);
+      } catch (error) {
+        console.error('Error Author Story Game Count:', error);
+      }
+    };
+
+    if (walletAddress) fetchStoryCount();
+  }, [walletAddress]);
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const newAddresses = await getAuthorStoryGames(signer, walletAddress);
+        setStoryAddresses(newAddresses);
+      } catch (error) {
+        console.error('Error Author Story Games:', error);
+      }
+    };
+
+    if (walletAddress) fetchAddresses();
+  }, [walletAddress]);
 
   const fetchUserData = async () => {
     try {
@@ -32,20 +46,6 @@ const UserProfile = () => {
         username: 'CryptoBard',
         bio: 'A wandering storyteller weaving tales across the blockchain.',
         joined: '2025-01-15',
-        stories: [
-          {
-            id: 1,
-            title: 'The Quantum Chronicles',
-            theme: 'Science Fiction / Quantum Reality',
-            lastUpdated: '2025-03-05',
-          },
-          {
-            id: 2,
-            title: 'Echoes of the Void',
-            theme: 'Mystery / Cosmic Horror',
-            lastUpdated: '2025-03-10',
-          },
-        ],
         ownedNFTs: 3, // Could represent minted story NFTs
       };
       setUserData(mockData);
@@ -114,22 +114,22 @@ const UserProfile = () => {
             {userData.username}'s Stories
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {userData.stories.map((story) => (
+            {storyAddresses.map((address, index) => (
               <div
-                key={story.id}
+                key={index}
                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200"
               >
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {story.title}
+                  {address}
                 </h3>
                 <p className="text-blue-600 text-sm mb-4 font-medium">
-                  Theme: {story.theme}
+                  Theme:
                 </p>
                 <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                  <span>Updated: {story.lastUpdated}</span>
+                  <span>Updated: </span>
                 </div>
                 <button
-                  onClick={() => handleViewStory(story.id)}
+                  onClick={() => handleViewStory(address)}
                   className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
                 >
                   View Story
