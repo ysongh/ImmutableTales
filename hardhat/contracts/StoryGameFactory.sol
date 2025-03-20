@@ -80,6 +80,14 @@ contract StoryGameFactory {
         return storyGame.getAllContent();
     }
 
+    function getStoryContentByStoryAddress(address storyAddress) external view returns (string memory _storyTitle, string memory _theme) {
+        StoryGame storyGame = StoryGame(storyAddress);
+        return (
+            storyGame.storyTitle(),
+            storyGame.theme()
+        );
+    }
+
     function getAllStories() external view returns (Story[] memory) {
         return stories;
     }
