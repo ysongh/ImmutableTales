@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+
 import { ETHContext } from '../ETHContext';
 import { useContracts } from '../utils/useContracts';
+import StoryCard from '../components/StoryCard';
 
 const UserProfile = () => {
-  const navigate = useNavigate();
   const { signer, walletAddress } = useContext(ETHContext);
-   const { getAuthorStoryGameCount, getAuthorStoryGames } = useContracts();
+  const { getAuthorStoryGameCount, getAuthorStoryGames } = useContracts();
 
   const [userData, setUserData] = useState(null);
   const [storyCount, setStoryCount] = useState(0);
@@ -60,9 +60,7 @@ const UserProfile = () => {
     fetchUserData();
   }, []);
 
-  const handleViewStory = (storyId) => {
-    navigate(`/story/${storyId}`);
-  };
+  
 
   if (loading) {
     return (
@@ -115,26 +113,7 @@ const UserProfile = () => {
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {storyAddresses.map((address, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200"
-              >
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {address}
-                </h3>
-                <p className="text-blue-600 text-sm mb-4 font-medium">
-                  Theme:
-                </p>
-                <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                  <span>Updated: </span>
-                </div>
-                <button
-                  onClick={() => handleViewStory(address)}
-                  className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
-                >
-                  View Story
-                </button>
-              </div>
+             <StoryCard key={index} address={address} />
             ))}
           </div>
         </div>
