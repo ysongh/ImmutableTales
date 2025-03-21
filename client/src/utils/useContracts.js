@@ -55,6 +55,14 @@ export const useContracts = () => {
     return storyAddresses;
   }
 
+  const getStoryContentByStoryAddress = async (signer, address) => {
+    const contract = await getStoryGameContract(signer);
+    let storyData = await contract.getStoryContentByStoryAddress(address);
+    storyData = Array.from(storyData);
+    console.log(storyData);
+    return storyData;
+  }
+
   const createStoryGame = async (signer, title, theme) => {
     const contract = await getStoryGameContract(signer);
     const createTX = await contract.createStoryGame(title, theme);
@@ -75,6 +83,7 @@ export const useContracts = () => {
     getStoryDataByStoryId,
     getAuthorStoryGameCount,
     getAuthorStoryGames,
+    getStoryContentByStoryAddress,
     createStoryGame,
     makeChoice
   };

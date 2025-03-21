@@ -1,8 +1,29 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { ETHContext } from '../ETHContext';
+import { useContracts } from '../utils/useContracts';
 
 function StoryCard({ address }) {
   const navigate = useNavigate();
+
+  const { signer, walletAddress } = useContext(ETHContext);
+  const { getStoryContentByStoryAddress } = useContracts();
+
+  const [storyData, setStoryData] = useState(null);
+
+  useEffect(() => {
+    const fetchStoryContentByStoryAddress = async () => {
+      try {
+        const data = await getStoryContentByStoryAddress(signer, address);
+        setStoryData(data);
+      } catch (error) {
+        console.error('Error Story Content:', error);
+      }
+    };
+
+    if (walletAddress) fetchStoryContentByStoryAddress();
+  }, [walletAddress]);
 
   const handleViewStory = (storyId) => {
     navigate(`/story/${storyId}`);
@@ -13,10 +34,10 @@ function StoryCard({ address }) {
       className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200"
     >
       <h3 className="text-lg font-semibold text-gray-800 mb-2">
-        {address}
+        {storyData?.length && storyData[0]}
       </h3>
       <p className="text-blue-600 text-sm mb-4 font-medium">
-        Theme:
+        Theme: {storyData?.length && storyData[1]}
       </p>
       <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
         <span>Updated: </span>
