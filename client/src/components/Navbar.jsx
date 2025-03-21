@@ -6,10 +6,20 @@ import { formatAddress } from '../utils/format';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { walletAddress, connectWallet } = useContext(ETHContext);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleDisconnect = () => {
+    setIsDropdownOpen(false);
+    if (isMobileMenuOpen) toggleMobileMenu();
   };
 
   return (
@@ -51,12 +61,33 @@ const Navbar = () => {
             >
               Profile
             </NavLink>
-            <button
-              onClick={connectWallet}
-              className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md transition-colors duration-200"
-            >
-              {walletAddress ? formatAddress(walletAddress) : 'Connect Wallet'}
-            </button>
+            {walletAddress ? (
+              <div className="relative">
+                <button
+                  onClick={toggleDropdown}
+                  className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md transition-colors duration-200"
+                >
+                  {formatAddress(walletAddress)}
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg z-10">
+                    <button
+                      onClick={handleDisconnect}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Disconnect Wallet
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={connectWallet}
+                className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md transition-colors duration-200"
+              >
+                Connect Wallet
+              </button>
+            )}
           </div>
 
           <button
@@ -125,15 +156,36 @@ const Navbar = () => {
             >
               Profile
             </NavLink>
-            <button
-              onClick={() => {
-                connectWallet();
-                toggleMobileMenu();
-              }}
-              className="w-full text-left py-2 px-4 bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
-            >
-              {walletAddress ? formatAddress(walletAddress) : 'Connect Wallet'}
-            </button>
+            {walletAddress ? (
+              <div className="relative">
+                <button
+                  onClick={toggleDropdown}
+                  className="w-full text-left py-2 px-4 bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+                >
+                  {formatAddress(walletAddress)}
+                </button>
+                {isDropdownOpen && (
+                  <div className="mt-2 w-full bg-white text-gray-800 rounded-md shadow-lg">
+                    <button
+                      onClick={handleDisconnect}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Disconnect Wallet
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  connectWallet();
+                  toggleMobileMenu();
+                }}
+                className="w-full text-left py-2 px-4 bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+              >
+                Connect Wallet
+              </button>
+            )}
           </div>
         )}
       </div>
