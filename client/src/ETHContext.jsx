@@ -28,6 +28,10 @@ export const ETHProvider = ({ children }) => {
     }
   };
 
+  const disconnectWallet = () => {
+    setWalletAddress(null);
+  };
+
   useEffect(() => {
     const checkWalletConnection = async () => {
       if (window.ethereum) {
@@ -47,7 +51,7 @@ export const ETHProvider = ({ children }) => {
   }, []);
 
   return (
-    <ETHContext.Provider value={{ provider, signer, walletAddress, connectWallet }}>
+    <ETHContext.Provider value={{ provider, signer, walletAddress, connectWallet, disconnectWallet }}>
       {children}
     </ETHContext.Provider>
   );

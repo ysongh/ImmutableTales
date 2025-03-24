@@ -7,7 +7,7 @@ import { formatAddress } from '../utils/format';
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { walletAddress, connectWallet } = useContext(ETHContext);
+  const { walletAddress, connectWallet, disconnectWallet } = useContext(ETHContext);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -18,6 +18,7 @@ const Navbar = () => {
   };
 
   const handleDisconnect = () => {
+    disconnectWallet();
     setIsDropdownOpen(false);
     if (isMobileMenuOpen) toggleMobileMenu();
   };
