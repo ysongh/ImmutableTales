@@ -63,7 +63,7 @@ const StoriesList = () => {
               </p>
               <div className="text-sm text-gray-500">
                 <p>By {formatAddress(story.owner)}</p>
-                <p>Updated: 2025-03-08</p>
+                <p>Updated: 2025-03-31</p>
               </div>
               <button
                 onClick={() => navigate(`/story/${index}`)}

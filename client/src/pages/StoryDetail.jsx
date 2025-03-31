@@ -110,7 +110,7 @@ const StoryDetail = () => {
                 ))}
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>By Author</span>
-                  <span>3/8/2025</span>
+                  <span>3/31/2025</span>
                 </div>
               </div>
             )})}

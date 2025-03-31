@@ -51,7 +51,7 @@ function createStoryGameAgent(contractAddress, providerUrl) {
     debugLog(`Agent wallet address: ${wallet.address}`);
 
     const artifactPath = path.resolve(__dirname, '../artifacts/contracts/StoryGameFactory.sol/StoryGameFactory.json');
-    debugLog(`Looking for artifact at: ${artifactPath}`);
+    // debugLog(`Looking for artifact at: ${artifactPath}`);
 
     if (!fs.existsSync(artifactPath)) {
       throw new Error(`Artifact file not found at ${artifactPath}`);
